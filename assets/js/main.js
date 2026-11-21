@@ -134,8 +134,24 @@
   /* ---------- Появление блоков ---------- */
   var revealItems = document.querySelectorAll(".reveal");
 
+  function showReveal(el) {
+    if (el) el.classList.add("is-visible");
+  }
+
+  /* При переходе по ссылке с # сразу показываем всю целевую секцию:
+     высокие блоки (например, калькулятор) на маленьком экране могут не
+     набрать нужный процент видимости и остаться невидимыми. */
+  function revealHashTarget() {
+    var id = decodeURIComponent((window.location.hash || "").slice(1));
+    if (!id) return;
+    var target = document.getElementById(id);
+    if (!target) return;
+    showReveal(target);
+    target.querySelectorAll(".reveal").forEach(showReveal);
+  }
+
   if (reduceMotion || !("IntersectionObserver" in window)) {
-    revealItems.forEach(function (el) { el.classList.add("is-visible"); });
+    revealItems.forEach(showReveal);
   } else {
     var revealObserver = new IntersectionObserver(
       function (entries) {
@@ -143,14 +159,19 @@
           if (!entry.isIntersecting) return;
           var el = entry.target;
           var delay = parseInt(el.getAttribute("data-delay") || "0", 10);
-          window.setTimeout(function () { el.classList.add("is-visible"); }, delay);
+          window.setTimeout(function () { showReveal(el); }, delay);
           revealObserver.unobserve(el);
         });
       },
-      { rootMargin: "0px 0px -8% 0px", threshold: 0.12 }
+      /* Порог 0: достаточно появления хотя бы части блока. Иначе длинный
+         калькулятор не проявляется, когда по якорю прыгаешь на его секцию. */
+      { rootMargin: "0px 0px -8% 0px", threshold: 0 }
     );
     revealItems.forEach(function (el) { revealObserver.observe(el); });
   }
+
+  revealHashTarget();
+  window.addEventListener("hashchange", revealHashTarget);
 
   /* ---------- FAQ ---------- */
   var faqItems = Array.prototype.slice.call(document.querySelectorAll(".faq-item"));
