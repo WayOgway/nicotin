@@ -445,12 +445,17 @@
           return;
         }
 
+        /* Копирование должно начаться в момент нажатия: на мобильных
+           браузерах доступ к буферу обмена даётся только пользовательскому
+           жесту, и открытие вкладки может этот жест «поглотить». */
+        var copyPromise = copyMessage();
+
         /* Открываем Telegram сразу в обработчике клика,
            иначе браузер может заблокировать новую вкладку. */
         window.open(CONFIG.telegram, "_blank", "noopener");
         trackGoal("booking_click");
 
-        copyMessage().then(function (ok) {
+        copyPromise.then(function (ok) {
           if (!sendNote) return;
           sendNote.textContent = ok
             ? "Текст скопирован. Вставьте его в чат."
