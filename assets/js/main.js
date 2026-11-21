@@ -142,7 +142,8 @@
      высокие блоки (например, калькулятор) на маленьком экране могут не
      набрать нужный процент видимости и остаться невидимыми. */
   function revealHashTarget() {
-    var id = decodeURIComponent((window.location.hash || "").slice(1));
+    var id = (window.location.hash || "").slice(1);
+    try { id = decodeURIComponent(id); } catch (err) { /* кривой % в ссылке */ }
     if (!id) return;
     var target = document.getElementById(id);
     if (!target) return;
